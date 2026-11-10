@@ -11,6 +11,41 @@ site:
   picks: 15               # 首页「精选」条数
   max_papers: 700         # 单日最多收录
 
+conferences:
+  enabled: true
+  refresh_days: 7
+  # Only abstracts for title matches are downloaded; the listing itself is cached.
+  max_abstracts_per_source: 60
+  sources:
+    - id: cvpr2026
+      kind: cvf
+      name: CVPR 2026
+      url: "https://openaccess.thecvf.com/CVPR2026?day=all"
+      date: "2026-06-01"
+      topic: vision
+      enabled: true
+    - id: iclr2026
+      kind: iclr
+      name: ICLR 2026
+      url: "https://proceedings.iclr.cc/paper_files/paper/2026"
+      date: "2026-04-24"
+      topic: learning
+      enabled: true
+    - id: corl2025
+      kind: pmlr
+      name: CoRL 2025
+      url: "https://proceedings.mlr.press/v305/"
+      date: "2025-09-29"
+      topic: robotics
+      enabled: true
+    - id: icml2025
+      kind: pmlr
+      name: ICML 2025
+      url: "https://proceedings.mlr.press/v267/"
+      date: "2025-07-13"
+      topic: learning
+      enabled: true
+
 sources:
   # Additional RSS feeds. Enable any after checking the feed is publicly
   # accessible; OpenReview and Zhihu often require challenge/cookie handling.

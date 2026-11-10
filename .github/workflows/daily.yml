@@ -2,22 +2,11 @@ name: Daily Paper Radar
 
 on:
   schedule:
-    - cron: "0 1 * * *"        # UTC 01:00 = 北京时间 09:00
+    - cron: "0 2 * * *"        # UTC 02:00 = 北京时间 10:00，作为本地 08:30 推送的兜底
   workflow_dispatch:           # 支持手动触发
-  push:
-    branches: [main]
-    paths:                     # 只在改代码/配置时重建，数据提交不会触发（避免循环）
-      - "psradar/**"
-      - "assets/**"
-      - "templates/**"
-      - "config.yaml"
-      - "run.py"
-      - "requirements.txt"
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: paper-radar
@@ -52,7 +41,7 @@ jobs:
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
-        run: python run.py
+        run: python run.py --no-notify
 
       - name: 提交数据（历史 + 翻译缓存）
         run: |
@@ -65,17 +54,3 @@ jobs:
             git commit -m "chore: data $(TZ=Asia/Shanghai date +%F)"
             git push
           fi
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4

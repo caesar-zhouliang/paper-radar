@@ -250,3 +250,8 @@ body.no-scroll{overflow:hidden}
   .lightbox{display:none!important}
   a{color:inherit;text-decoration:none}
 }
+
+/* Rendered display mathematics */
+.math-display{margin:24px 0;padding:16px 18px;overflow-x:auto;border:1px solid var(--line);border-radius:13px;background:var(--paper-soft)}
+.math-display mjx-container{display:block!important;margin:0!important;text-align:center}
+mjx-container[jax="SVG"]{overflow-x:auto;overflow-y:hidden;max-width:100%}

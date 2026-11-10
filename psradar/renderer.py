@@ -33,6 +33,8 @@ def _slim(p: dict) -> dict:
         "primary_topic": p.get("primary_topic", ""),
         "score": p.get("score", 0),
         "pick": bool(p.get("pick")),
+        "source": p.get("source") or "arXiv",
+        "sources": p.get("sources") or ["arXiv"],
         "reader_url": p.get("reader_url", ""),
         "brief_zh": p.get("brief_zh", {}),
     }
@@ -80,6 +82,9 @@ def build_site(cfg, papers: list[dict], date_str: str, days: list[dict], extra_d
     SITE_DIR.mkdir(parents=True, exist_ok=True)
     (SITE_DIR / "day").mkdir(exist_ok=True)
     (SITE_DIR / "data").mkdir(exist_ok=True)
+    mathjax_src = ROOT / "assets" / "mathjax"
+    if mathjax_src.exists():
+        shutil.copytree(mathjax_src, SITE_DIR / "assets" / "mathjax", dirs_exist_ok=True)
 
     tpl = _read(ROOT / "templates" / "page.html")
     css = _read(ROOT / "assets" / "style.css")

@@ -83,6 +83,8 @@
     var authors = (p.authors || []).slice(0, 4).map(esc).join(", ");
     if ((p.authors || []).length > 4) authors += ' <span class="more">等 ' + p.authors.length + " 人</span>";
 
+    var sourceLabel = (p.sources && p.sources.length ? p.sources.join(" · ") : (p.source || ""));
+    var sourceChip = sourceLabel ? '<span class="chip source">' + esc(sourceLabel) + "</span>" : "";
     var hasZh = !!(p.title_zh || p.abstract_zh);
     var body = p.abstract_zh || "（中文摘要待生成）";
     var bodyEn = p.abstract ? '<div class="abstract-en" hidden>' + esc(p.abstract) + "</div>" : "";
@@ -90,7 +92,7 @@
     return '<article class="card' + (p.pick ? " pick" : "") + '" data-i="' + idx + '">' +
       '<div class="card-top">' +
         (p.pick ? '<span class="chip pick">★ 精选</span>' : "") +
-        chips +
+        sourceChip + chips +
         '<span class="score"><span class="meter"><i style="width:' + Math.max(4, Math.min(100, p.score)) + '%"></i></span>' + p.score + "</span>" +
       "</div>" +
       '<h2 class="title"><a href="' + esc(p.abs_url) + '" target="_blank" rel="noopener">' + esc(p.title_zh || p.title) + "</a></h2>" +

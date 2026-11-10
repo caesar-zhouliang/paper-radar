@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.request
 
 
@@ -81,23 +82,35 @@ def send_markdown(title: str, markdown: str) -> list[str]:
         raise RuntimeError("missing FEISHU_RECEIVE_EMAILS / FEISHU_RECEIVE_IDS / FEISHU_RECEIVE_ID")
     sent = []
     for receive_id in recipients:
-        body = _post(
-            "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id",
-            {
-                "receive_id": receive_id,
-                "msg_type": "interactive",
-                "content": json.dumps(
-                    {
-                        "config": {"wide_screen_mode": True, "enable_forward": True},
-                        "header": {"template": "blue", "title": {"tag": "plain_text", "content": title}},
-                        "elements": [{"tag": "div", "text": {"tag": "lark_md", "content": markdown}}],
-                    },
-                    ensure_ascii=False,
-                ),
-            },
-            token,
-        )
-        if body.get("code") != 0:
-            raise RuntimeError(f"Feishu message rejected for {receive_id}: {body}")
+        payload = {
+            "receive_id": receive_id,
+            "msg_type": "interactive",
+            "content": json.dumps(
+                {
+                    "config": {"wide_screen_mode": True, "enable_forward": True},
+                    "header": {"template": "blue", "title": {"tag": "plain_text", "content": title}},
+                    "elements": [{"tag": "div", "text": {"tag": "lark_md", "content": markdown}}],
+                },
+                ensure_ascii=False,
+            ),
+        }
+        last_error = None
+        for attempt in range(3):
+            try:
+                body = _post(
+                    "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id",
+                    payload,
+                    token,
+                )
+                if body.get("code") == 0:
+                    last_error = None
+                    break
+                last_error = RuntimeError(f"Feishu message rejected for {receive_id}: {body}")
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+            if attempt < 2:
+                time.sleep(5 * (attempt + 1))
+        if last_error is not None:
+            raise last_error
         sent.append(receive_id)
     return sent

@@ -1,0 +1,56 @@
+[
+ {
+  "number": "1",
+  "page": 3,
+  "caption": "Figure 1: Pipeline of AutoVLA-D. Trajectory Form in Autoregressive VLA. Autoregressive VLA planners represent the future ego trajectory over three degrees of freedom: x-axis position, y-axis position, and heading. Existing trajectory forms can be grouped into two types. Continuous-trajectory methods, including Impromptu VLA [3], AdaThinkDrive [16], Curious-VLA [2], and ELF-VLA [17], serialize each future ego state as numeric text waypoint tokens; among them, Curious-VLA [2] further improves performance with step-wise trajectory normalization. Discrete-trajectory methods instead serialize each local ego-state transition as an action token and recover the future trajectory by temporal integration. AutoVLA [30] builds K-Means/K-Disks-style action codebooks whose tokens represent 3-DoF local motions [25; 20], while DriveVLA-W0 [11] uses frequency-based FAST tokenization [19]. AutoVLA-D differs by using discrete trajectories as trajectory-geometric conditions rather than final outputs, and adopts a 1D-Brohan form where each action token represents a 1-DoF local motion.",
+  "image": "figure-1.png"
+ },
+ {
+  "number": "2",
+  "page": 8,
+  "caption": "Figure 2: Collision examples and failed NC×DAC product rates on NAVSIM navtest. The left three panels show representative collision-related scenes for the three high-level intents, and the right panel reports the failed NC×DAC product rate for Continuous and Brohan TrajCond. Full NC/DAC/Product counts are provided in Supplement Table 14.",
+  "image": "figure-2.png"
+ },
+ {
+  "number": "3",
+  "page": 8,
+  "caption": "Figure 3: TrajCond form analysis for action tokens. Each codebook-size group pairs the reconstruction-error curve with the corresponding EPDMS/PDMS bars. The left axis reports tra- jectory reconstruction error; the right axis reports EPDMS/PDMS. Due to space limits, we move codebook-size=384 to Supplement Fig. 8. TrajCond ablation on nuScenes/NeuroNCAP. The completed comparisons further validate AutoVLA-D beyond NAVSIM. In the SFT-only nuScenes setting, TrajCond improves open-loop planning over the w/o-TC variant under both ST-P3 and UniAD metrics. On NeuroNCAP, Traj- Cond also improves closed-loop safety and reduces collisions. This supports that TrajCond is not a NAVSIM-only artifact.",
+  "image": "figure-3.png"
+ },
+ {
+  "number": "4",
+  "page": 10,
+  "caption": "Figure 4: t-SNE visualization of hidden states from the discrete trajectory used as TrajCond. Left: points are colored by instruction motion direction. Right: points are colored by speed behavior.",
+  "image": "figure-4.png"
+ },
+ {
+  "number": "5",
+  "page": 13,
+  "caption": "Figure 5: Prompt for Qwen3-VL-235B to pseudo-label NAVSIM CoT reasoning data.",
+  "image": "figure-5.png"
+ },
+ {
+  "number": "6",
+  "page": 16,
+  "caption": "Figure 6: Illustration of local-frame differential motion. The displacement between τt−1 and τt is first observed in the t = 0 ego frame, then rotated by R(−θt−1) into the local frame at step t −1 to obtain (∆xt, ∆yt).",
+  "image": "figure-6.png"
+ },
+ {
+  "number": "7",
+  "page": 16,
+  "caption": "Figure 7: Trajectory tokenization illustration Copied From Trajeglish [20]. An example trajectory is shown in green. The raw representation of the tokenized trajectory is shown as boxes with blue outlines. States that have yet to be tokenized are light green. Token templates are optimized to minimize the error between the tokenized trajectories and the raw trajectories.",
+  "image": "figure-7.png"
+ },
+ {
+  "number": "8",
+  "page": 18,
+  "caption": "Figure 8: Complete trajectory-representation analysis across codebook sizes 384, 768, and 1536. The figure reports reconstruction error for each discretization method together with the corresponding PDMS/EPDMS performance bars.",
+  "image": "figure-8.png"
+ },
+ {
+  "number": "9",
+  "page": 21,
+  "caption": "Figure 9: Additional collision-related examples for the NC/DAC analysis. The legend maps pink circular markers and square bars to Continuous, and green circular markers and square bars to Brohan TrajCond. The six panels preserve the original sample-image resolution after white-border cropping and show representative failure modes indicated by their panel labels: road-side collision, lane departure, excessive speed, and wrong direction.",
+  "image": "figure-9.png"
+ }
+]

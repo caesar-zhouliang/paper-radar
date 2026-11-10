@@ -1,0 +1,38 @@
+[
+ {
+  "number": "1",
+  "page": 1,
+  "caption": "Figure 1: Overview. We train a humanoid robot with two multi-fingered hands to perform a range of contact- rich dexterous manipulation tasks on diverse objects. Observations are obtained from a third-view camera, an egocentric camera, and robot proprioception. Our reinforcement learning policies generalize zero-shot to unseen real-world objects with varying physical properties (e.g. shape, size, color, material, mass) and remain robust against force disturbances. We also validate the adaptability of our approach on two hardware variations.",
+  "image": "figure-1.png"
+ },
+ {
+  "number": "2",
+  "page": 3,
+  "caption": "Figure 2: A sim-to-real RL recipe for vision-based dexterous manipulation. We close the environment modeling gap between simulation and reality through an automated real-to-sim tuning module, design gener- alizable task rewards by disentangling each manipulation task into contact states and object states, improve sample efficiency of policy training by using task-aware hand poses and divide-and-conquer distillation, and transfer vision-based policies to the real world with a mixture of sparse and dense object representations.",
+  "image": "figure-2.png"
+ },
+ {
+  "number": "3",
+  "page": 6,
+  "caption": "Figure 3: Policies learned in sim- ulation. Left: grasp-and-reach; mid- dle: box lift; right: bimanual handover (right-to-left, left-to-right).",
+  "image": "figure-3.png"
+ },
+ {
+  "number": "4",
+  "page": 6,
+  "caption": "Figure 4: Training grasp-and-reach policy with different object sets. Each curve is from 10 runs with different random seeds. Left: training with complex objects v.s. simple geometric primitive objects. Right: training with differently grouped geometric objects.",
+  "image": "figure-4.png"
+ },
+ {
+  "number": "5",
+  "page": 7,
+  "caption": "Figure 5: Different contact patterns emerge from different placements of contact markers. Top: con- tact markers on the left and right side centers; middle: markers on the top and bottom side centers; bottom: markers on the bottom side edges.",
+  "image": "figure-5.png"
+ },
+ {
+  "number": "6",
+  "page": 7,
+  "caption": "Figure 6: Policy robustness. Our learned policies re- main robust under different force perturbations, includ- ing knock (top left), pull (top right), push (bottom left), and drag (bottom right).",
+  "image": "figure-6.png"
+ }
+]

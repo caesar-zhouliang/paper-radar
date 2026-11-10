@@ -1,29 +1,34 @@
-"""Build the short Feishu brief: summary only, links to the site readers."""
+"""Build the short Feishu brief: summary, method and driving takeaway."""
 from __future__ import annotations
 
 from html import escape
 
 
-def _pick_text(paper: dict) -> tuple[str, str, str]:
+def _pick_text(paper: dict) -> tuple[str, str, str, str]:
     brief = paper.get("brief_zh") or {}
-    summary = paper.get("abstract_zh") or brief.get("summary") or paper.get("abstract") or ""
+    # The short brief is intentionally generated separately from the arXiv
+    # abstract: keep scores and benchmark tables out of it.
+    summary = brief.get("summary") or paper.get("abstract_zh") or paper.get("abstract") or ""
+    method = brief.get("method") or ""
     driving = brief.get("driving") or ""
-    return paper.get("title_zh") or paper["title"], summary.strip(), driving.strip()
+    return paper.get("title_zh") or paper["title"], summary.strip(), method.strip(), driving.strip()
 
 
 def markdown(cfg, papers: list[dict], date_str: str) -> str:
     base = (cfg.nav("site.base_url", "") or "").rstrip("/")
-    picks = [p for p in papers if p.get("pick")][:10]
-    lines = [f"## {date_str} 论文摘要", ""]
+    picks = sorted([p for p in papers if p.get("pick")], key=lambda p: -int(p.get("score", 0)))[:10]
+    lines = [f"## {date_str} 论文简报", ""]
     for index, paper in enumerate(picks, 1):
-        title, summary, driving = _pick_text(paper)
+        title, summary, method, driving = _pick_text(paper)
         reader = paper.get("reader_url") or ""
         lines.append(f"**{index}. {title}**")
         if summary:
-            lines.append(summary)
+            lines.append(f"**摘要**：{summary}")
+        if method:
+            lines.append(f"**实验方法**：{method}")
         if driving:
-            lines.append(f"**对自动驾驶的启发**：{driving}")
-        lines.append(f"[arXiv]({paper['abs_url']})")
+            lines.append(f"**对自动驾驶方案的帮助**：{driving}")
+        lines.append(f"[论文主页]({paper['abs_url']})")
         if reader:
             lines.append(f"[中文精读]({base}/{reader})")
         lines.append("")
@@ -36,5 +41,5 @@ def markdown(cfg, papers: list[dict], date_str: str) -> str:
 def send(cfg, papers: list[dict], date_str: str) -> bool:
     from . import feishu
     body = markdown(cfg, papers, date_str)
-    feishu.send_markdown(f"Paper Radar · {date_str} 摘要", body)
+    feishu.send_markdown(f"Paper Radar · {date_str} 论文简报", body)
     return True

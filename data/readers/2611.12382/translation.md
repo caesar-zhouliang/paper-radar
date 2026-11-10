@@ -1,6 +1,7 @@
 ## 基础摘要
 
-自动驾驶 VLA（视觉—语言—动作）规划器通常让多模态大模型先理解图像与驾驶指令、生成推理，再自回归输出连续轨迹。问题在于，驾驶指令往往描述“让行、保持、转弯”等局部动作，而最终输出却是逐点的自车状态坐标，二者之间存在表示鸿沟；同时，离散动作 token 虽更贴合指令语义，但直接作为最终轨迹输出会引入量化误差，实验中也确实弱于连续轨迹直接回归。为此，作者提出 AutoVLA-D：把离散轨迹作为“轨迹几何条件”（TrajCond），先预测离散动作轨迹，再以其为条件回归最终连续轨迹。具体地，轨迹被转换为相邻时刻的局部坐标系差分运动 (Δx, Δy, Δθ)，并用三个独立的一维 Brohan 码本分别量化，每个 token 只表示单自由度局部运动；训练采用两阶段 SFT：第一阶段用 (o, ℓ) 学习动作 token 序列，第二阶段按 a→w 顺序同时监督动作 token 与连续路点 token，推理时全自回归，NAVSIM 上还可加入 CoT 推理与 GRPO 强化微调。实验覆盖 NAVSIM navtest 非反应式闭环、nuScenes 开环和 NeuroNCAP 闭环；NAVSIM 主模型为 Qwen3-VL-4B，nuScenes/NeuroNCAP 主设置为 Qwen2.5-VL-3B 并另报 Qwen3-VL-4B。AutoVLA-D 在 NAVSIM navtest 取得 92.0 PDMS 与 86.8 EPDMS；nuScenes 上 Qwen2.5-VL-3B 的 ST-P3 指标为 L2 0.30 m、碰撞率 0.10，UniAD 指标为 L2 0.60 m、碰撞率 0.35，Qwen3-VL-4B 的碰撞率进一步降至 0.09/0.29；NeuroNCAP 上 Qwen2.5-VL-3B 得分 3.63、碰撞率 0.36，Qwen3-VL-4B 为 3.23/0.39。消融显示：离散轨迹直接输出弱于连续轨迹，但作为 TrajCond 后稳定增益；NAVSIM 上完整方案由连续基线 88.5 PDMS 提升到 92.0，NC×DAC 失败率在直行/左转/右转分别相对下降 33.6%/27.6%/42.2%。结论是离散轨迹更适合作为连接指令语义与连续规划的中间条件，而非最终输出。局限是额外解码与训练开销，且低频动作 token 可能学习不足；NAVSIM 仅单次运行、无误差棒。
+
+论文针对自回归视觉—语言—动作规划器将连续轨迹直接作为最终输出、而驾驶指令多描述动作而非自车状态，导致最终轨迹缺少直接条件约束的问题。作者提出TrajCond，将轨迹几何编码为离散的1D-Brohan差分动作轨迹，并在连续轨迹预测前通过两阶段训练学习该条件；离散轨迹与数值轨迹均自回归生成，故称AutoVLA-D。实验在NAVSIM navtest、nuScenes和NeuroNCAP上进行，设置离散轨迹直接输出与作为TrajCond条件两种用法作对照，并在开环、闭环场景检验最终连续轨迹预测。推理时先自回归生成离散几何条件，再据此预测连续轨迹；代码已开源。
 
 ## 论文结构图
 
@@ -783,3 +784,20 @@ $$
 15. **伦理审查委员会（IRB）批准或等效审查。** 论文是否描述研究参与者潜在风险、是否向受试者披露，以及是否获得 IRB 或等效批准？**回答：不适用。** 研究不涉及人类受试者或众包。**指南：** 根据研究所在国家，任何人类受试者研究可能需要 IRB 或等效批准；若获得批准，应在论文中清楚说明；不同机构与地区的程序可能差异很大，作者应遵守 NeurIPS 伦理准则及所在机构指南；初稿不得包含破坏匿名性的信息（如适用），例如评审机构名称。
 
 16. **LLM 使用声明。** 若 LLM 是核心方法的重要、原创或非标准组件，论文是否说明其使用？若 LLM 仅用于写作、编辑或格式调整且不影响核心方法、科学严谨性或原创性，则无需声明。**回答：是。** 使用 Qwen3-VL-235B 生成伪标注 CoT 推理数据一事在 4.1 节明确记录，所用确切提示词列于附录 C。**指南：** 若核心方法开发不涉及 LLM 作为重要、原创或非标准组件，可回答“不适用”；具体应声明与不应声明的内容参见 NeurIPS 手册中的 LLM 政策。
+
+
+## 补充图表
+
+<figure class="paper-figure"><img src="figure-3.png" alt="图 3" loading="lazy"><figcaption>图 3：Figure 3: TrajCond form analysis for action tokens. Each codebook-size group pairs the reconstruction-error curve with the corresponding EPDMS/PDMS bars. The left axis reports tra- jectory reconstruction error; the right axis reports EPDMS/PDMS. Due to space limits, we move codebook-size=384 to Supplement Fig. 8. TrajCond ablation on nuScenes/NeuroNCAP. The completed comparisons further validate AutoVLA-D beyond NAVSIM. In the SFT-only nuScenes setting, TrajCond improves open-loop planning over the w/o-TC variant under both ST-P3 and UniAD metrics. On NeuroNCAP, Traj- Cond also improves closed-loop safety and reduces collisions. This supports that TrajCond is not a NAVSIM-only artifact.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-4.png" alt="图 4" loading="lazy"><figcaption>图 4：Figure 4: t-SNE visualization of hidden states from the discrete trajectory used as TrajCond. Left: points are colored by instruction motion direction. Right: points are colored by speed behavior.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-5.png" alt="图 5" loading="lazy"><figcaption>图 5：Figure 5: Prompt for Qwen3-VL-235B to pseudo-label NAVSIM CoT reasoning data.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-6.png" alt="图 6" loading="lazy"><figcaption>图 6：Figure 6: Illustration of local-frame differential motion. The displacement between τt−1 and τt is first observed in the t = 0 ego frame, then rotated by R(−θt−1) into the local frame at step t −1 to obtain (∆xt, ∆yt).</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-7.png" alt="图 7" loading="lazy"><figcaption>图 7：Figure 7: Trajectory tokenization illustration Copied From Trajeglish [20]. An example trajectory is shown in green. The raw representation of the tokenized trajectory is shown as boxes with blue outlines. States that have yet to be tokenized are light green. Token templates are optimized to minimize the error between the tokenized trajectories and the raw trajectories.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-8.png" alt="图 8" loading="lazy"><figcaption>图 8：Figure 8: Complete trajectory-representation analysis across codebook sizes 384, 768, and 1536. The figure reports reconstruction error for each discretization method together with the corresponding PDMS/EPDMS performance bars.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-9.png" alt="图 9" loading="lazy"><figcaption>图 9：Figure 9: Additional collision-related examples for the NC/DAC analysis. The legend maps pink circular markers and square bars to Continuous, and green circular markers and square bars to Brohan TrajCond. The six panels preserve the original sample-image resolution after white-border cropping and show representative failure modes indicated by their panel labels: road-side collision, lane departure, excessive speed, and wrong direction.</figcaption></figure>

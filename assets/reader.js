@@ -13,7 +13,7 @@
   syncTheme();
   themeButton.addEventListener('click', () => {
     root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('vp-dissociation-theme', root.dataset.theme);
+    localStorage.setItem('paper-radar-theme', root.dataset.theme);
     syncTheme();
   });
   document.getElementById('printBtn').addEventListener('click', () => window.print());

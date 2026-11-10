@@ -12,12 +12,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from psradar import arxiv_client, notify, ranker, renderer, sources, translator, zh
+from psradar import arxiv_client, conferences, notify, ranker, renderer, sources, translator, zh
 from psradar.config import CACHE_DIR, DATA_DIR, load_config
 
 HISTORY_DIR = DATA_DIR / "history"
@@ -57,6 +58,37 @@ def _load_archive(days: list[dict]) -> dict[str, list[dict]]:
             except Exception:
                 continue
     return out
+
+
+def _dedupe_sources(papers: list[dict]) -> list[dict]:
+    """Merge the same paper from arXiv and a conference by normalized title."""
+    merged: dict[str, dict] = {}
+    order: list[str] = []
+    for paper in papers:
+        key = re.sub(r"[^a-z0-9]+", " ", (paper.get("title") or "").lower()).strip()
+        if not key:
+            continue
+        if key not in merged:
+            merged[key] = dict(paper)
+            order.append(key)
+            continue
+        base = merged[key]
+        source_name = paper.get("source") or paper.get("comment")
+        base_sources = list(base.get("sources") or [base.get("source") or ""])
+        if source_name and source_name not in base_sources:
+            base_sources.append(source_name)
+        base["sources"] = [x for x in base_sources if x]
+        if paper.get("comment") and paper["comment"] not in (base.get("comment") or ""):
+            base["comment"] = ((base.get("comment") or "") + " | " + paper["comment"]).strip(" |")
+        if paper.get("journal_ref") and paper["journal_ref"] not in (base.get("journal_ref") or ""):
+            base["journal_ref"] = ((base.get("journal_ref") or "") + " | " + paper["journal_ref"]).strip(" |")
+        if not base.get("abstract") and paper.get("abstract"):
+            base["abstract"] = paper["abstract"]
+        if not base.get("authors") and paper.get("authors"):
+            base["authors"] = paper["authors"]
+        if not base.get("pdf_url") and paper.get("pdf_url"):
+            base["pdf_url"] = paper["pdf_url"]
+    return [merged[key] for key in order]
 
 
 def _prune() -> None:
@@ -104,7 +136,10 @@ def main() -> int:
             interval=float(cfg.nav("fetch.request_interval", 3.2)),
         )
         extra = sources.fetch_extra(cfg.nav("sources.extra", []) or [])
+        meeting = conferences.fetch_conferences(cfg)
         raw.extend(extra)
+        raw.extend(meeting)
+        raw = _dedupe_sources(raw)
         if not raw:
             print("没抓到论文，退出")
             return 1
@@ -145,6 +180,9 @@ def main() -> int:
     archive = _load_archive(days)
     renderer.build_site(cfg, papers, date_str, days, archive)
     renderer.build_feed(cfg, papers, date_str)
+    # build_site attaches reader_url while publishing readers. Persist it so
+    # the 08:30 Feishu brief and the next Pages build can link to them.
+    _save_history(date_str, papers)
     print(f"  · 站点已生成：{renderer.SITE_DIR}")
 
     if not args.no_notify:

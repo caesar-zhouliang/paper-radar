@@ -1,7 +1,7 @@
 # 📡 Paper Radar
 
-每天自动抓取 arXiv 上与 **扩散模型 / 自动驾驶 / 强化学习 / 世界模型 / 机器人** 相关的新论文，
-打分排序、翻译成中文、生成一个静态网站，并推送到邮箱 / 微信。
+每天自动抓取 arXiv、CVPR / ICLR / ICML / CoRL 等来源中与 **扩散模型 / 自动驾驶 / 强化学习 / 世界模型 / 机器人** 相关的新论文，
+打分排序、翻译成中文、生成一个静态网站，并私聊推送到飞书。
 
 - 零服务器：GitHub Actions 定时跑，GitHub Pages 托管，完全免费
 - 零数据库：每天的论文存成 JSON，随仓库一起版本化
@@ -35,7 +35,16 @@ git push -u origin main
 仓库 → **Actions → Daily Paper Radar → Run workflow**。
 约 3~5 分钟后，你的站点就在 `https://<用户名>.github.io/paper-radar/`。
 
-之后每天北京时间早上 9 点自动更新，无需再管。
+GitHub Actions 在北京时间每天 10:00 做一次兜底抓取。若需要每天 08:30 准点收到飞书，
+使用仓库根目录的本地定时任务（04:30 准备，08:30 只发送），这样耗时较长的两篇全文精读不会挤占发送时间。
+
+```cron
+30 4 * * * /path/to/paper-radar/run-daily.sh --prepare
+0 6 * * *  /path/to/paper-radar/run-daily.sh --prepare
+30 8 * * * /path/to/paper-radar/run-daily.sh --send
+```
+
+第一次 `--prepare` 成功后，06:00 的重试会自动跳过；失败时则用于补跑。
 
 ### 4. 填站点地址（重要）
 **Settings → Secrets and variables → Actions → Variables → New variable**
@@ -82,11 +91,18 @@ RSS 和推送消息里的「查看完整列表」链接靠它。
 | 邮件 | `notify.email.enabled` + 填 `notify.email.to` | `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASS` |
 | 微信（Server酱） | `notify.serverchan.enabled` | `SERVERCHAN_KEY`（[sct.ftqq.com](https://sct.ftqq.com) 免费申请） |
 | 企业微信群 | `notify.wecom.enabled` | `WECOM_WEBHOOK`（群设置 → 群机器人 → 添加） |
+| 飞书私聊 | `notify.feishu.enabled` | 本机 `~/.config/paper-radar/feishu.env` 中的 `FEISHU_APP_ID`、`FEISHU_APP_SECRET`、`FEISHU_RECEIVE_EMAILS` |
 
 邮件用 QQ 邮箱示例：`SMTP_HOST=smtp.qq.com`、`SMTP_PORT=465`、`SMTP_USER=你的QQ邮箱`、
 `SMTP_PASS=授权码`（不是登录密码）。
 
 **RSS 永远是免费的**：站点根目录的 `feed.xml`，直接丢进任何阅读器即可。
+
+飞书接收者按邮箱解析为 `open_id`，只发个人私聊，不会发到群：
+
+```bash
+FEISHU_RECEIVE_EMAILS="xuzhouliang@qianli-drive.com"
+```
 
 ---
 

@@ -1,0 +1,44 @@
+[
+ {
+  "number": "1",
+  "page": 4,
+  "caption": "Figure 1: Residual Flow Steering (RFS). Given a state s, the RFS policy πRFS outputs a latent flow variable w0 and a residual action ar, which jointly steer a pretrained base pol- icy πFM to produce the final action ab + ar. RFS enables both global mode shifting and fine-grained residual correc- tion, allowing the policy to expand beyond the demonstra- tion data manifold.",
+  "image": "figure-1.png"
+ },
+ {
+  "number": "2",
+  "page": 5,
+  "caption": "Figure 2: Overview of the sim-to-real Residual Flow Steering (RFS) pipeline. (1) VR teleop- eration is used to collect demonstrations across multiple manipulation tasks to train task-specific flow-matching base policies. (2) In simulation, the RFS policy πRFS is fine-tuned on top of each base policy and distilled into task-specific visuomotor policies to improve sim-to-real transfer. (3) During zero-shot real-world deployment, human corrective actions correct execution failures such as unstable grasps and misplacement. (4) These corrected transitions are used for offline fine-tuning of πRFS on a Franka–Leap Hand system, improving real-world grasping and pick-and-place perfor- mance.",
+  "image": "figure-2.png"
+ },
+ {
+  "number": "3",
+  "page": 6,
+  "caption": "Figure 3: Simulation and real objects used for dexterous grasping and pick & place.",
+  "image": "figure-3.png"
+ },
+ {
+  "number": "4",
+  "page": 7,
+  "caption": "Figure 4: Representative rollouts for the dexterous manipu- lation tasks. From top to bottom: Packing, Push-to-Grasp, Packing and Stacking.",
+  "image": "figure-4.png"
+ },
+ {
+  "number": "5",
+  "page": 8,
+  "caption": "Figure 5: Real-world evaluation results on unseen objects. Bars show mean success rates for Pick-and-Place (left) and Grasping (right), with horizontal error bars denoting the 95% confidence interval. Numeric annotations report the mean success rate (±95% CI).",
+  "image": "figure-5.png"
+ },
+ {
+  "number": "6",
+  "page": 9,
+  "caption": "Figure 6: Common failure modes in real-world manipulation and RFS corrections. We illustrate five representative failure cases of zero-shot sim-to-real transfer, including early hand closure, loose or unstable grasp poses, and mistimed or misplaced actions during pick-and-place. The top row shows failures produced by the zero-shot policy, while the bottom row shows the corrected outcomes after applying Residual Flow Steering (RFS). By jointly correcting action timing, grasp pose, and target location, RFS enables more stable and successful task execution.",
+  "image": "figure-6.png"
+ },
+ {
+  "number": "7",
+  "page": 17,
+  "caption": "Figure 7: Reward progression over time in real-world ex- periments. Figure 8: Offline real-world data collection setup using the Leap Hand V1 and a space mouse interface.",
+  "image": "figure-7.png"
+ }
+]

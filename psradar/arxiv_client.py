@@ -80,6 +80,9 @@ def _parse(xml_bytes: bytes) -> list[dict]:
                 "journal_ref": _clean(e.findtext(f"{ARX}journal_ref")),
                 "abs_url": f"https://arxiv.org/abs/{aid}",
                 "pdf_url": links.get("pdf") or f"https://arxiv.org/pdf/{aid}",
+                "source": "arXiv",
+                "sources": ["arXiv"],
+                "source_kind": "preprint",
             }
         )
     return out

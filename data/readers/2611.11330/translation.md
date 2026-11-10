@@ -1,6 +1,7 @@
 ## 基础摘要
 
-多轮工具强化学习让语言模型通过“推理—调用工具—读取观测”求解任务，但训练中推理准确率与工具执行能力可能同步下滑。论文将其归因于三个耦合机制：错误轨迹每轮包含更多工具 token，使工具调用聚合信用为负；token 均值聚合按轨迹长度加权，放大较长错误轨迹的负信用；执行失败重试拉长轨迹，并把负信用扩展到成功恢复调用。为此提出转移感知信用分配（TACA）：优势投影对每个提示组内的工具 token 做最小均匀平移，使信用均值非负；决策对比比较同一提示下“用工具”与“直接作答”的平均奖励，校正调用起始 token；监督回放复用历史正确轨迹中的工具调用。实验覆盖 Qwen2.5-1.5B/3B/7B、Llama-3.2-1B 及数学、代码、WebShop 任务。六个数学基准上，TACA 较 MT-GRPO 在 1.5B/3B 上分别提升 4.61/3.61 个百分点；TACO 单元测试均分由 41.98 升至 53.70，WebShop 成功率由 56.8% 升至 67.2%。可见训练效果取决于中间信用分配。局限是模型、任务与随机种子覆盖有限，且决策对比依赖足够采样、回放依赖历史调用质量。
+
+论文研究带可验证奖励的智能体强化学习在多轮工具交互中出现的性能与工具调用能力退化问题。作者指出，现有训练存在三个相互耦合的缺陷：错误轨迹每轮包含更多工具 token，导致工具信用整体为负；按 token 均值聚合又让较长错误轨迹获得更大更新权重；模型失败后倾向重试工具，进一步把负信用扩散到恢复步骤。为此提出转移感知信用分配 TACA，同时监督工具调用的发起与生成，并针对从推理到工具使用的转移做校正。其核心是把工具调用的发起与生成纳入同一信用分配框架，并用优势投影、决策对比和监督回放分别修正组内偏差、判断调用收益、复用成功调用经验。
 
 ## 论文结构图
 
@@ -1268,3 +1269,23 @@ IMPORTANT RULES:
 ---
 
 *译注：本文原文中的图 6 已随论文提供；图 1–5、7–8 与图 9–10 在提取文本中以图注形式保留，未提供单独 PNG 文件。上文的公式编号、表格编号、算法编号与附录编号均沿用原文。*
+
+## 补充图表
+
+<figure class="paper-figure"><img src="figure-1.png" alt="图 1" loading="lazy"><figcaption>图 1：Figure 1: Coupled mechanisms of training degradation. Terminal supervision can yield negative aggregate tool credit. Token-mean aggregation can further amplify this signal by upweighting longer incorrect rollouts, while retries prolong these rollouts and extend negative credit to recovery attempts.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-2.png" alt="图 2" loading="lazy"><figcaption>图 2：Figure 2: Training dynamics of MT-GRPO. (a) Validation accuracy peaks and then falls below the non-agentic reference. (b) Tool-execution success declines despite broadly stable tool-use rates. (c) Mean tool-call counts rise for incorrect trajectories and remain relatively stable for correct ones.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-3.png" alt="图 3" loading="lazy"><figcaption>图 3：Figure 3: Negative credit on tool tokens. (a) The tool-token gap ¯m+</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-4.png" alt="图 4" loading="lazy"><figcaption>图 4：Figure 4: Length weighting and aggregate tool credit. (a) Token-mean aggregation shifts credit downward relative to trajectory-mean aggregation. (b) Length weighting turns positive tool credit negative in 73.6% of batches. This shifts the balance toward penalizing sampled tool calls.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-5.png" alt="图 5" loading="lazy"><figcaption>图 5：Figure 5: Retry behavior and continuation length. (a) A tool call in the next turn is more likely after failed than successful executions. (b) First-execution failure is associated with longer subsequent generation. (c) Incorrect trajectories have higher retry rates across all four models on MATH.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-7.png" alt="图 7" loading="lazy"><figcaption>图 7：Figure 7: Training dynamics on Qwen2.5-1.5B-Instruct. (a) Both methods improve training accuracy. TACA maintains (b) substantial tool use, (c) a smaller share of no-tool failures, and (d) a higher logged execution-success metric. Appendix I.5 defines the metrics and smoothing.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-8.png" alt="图 8" loading="lazy"><figcaption>图 8：Figure 8: Pooled reward means under trajectory and turn weighting. Incorrect trajectories contribute a larger share of generated turns than of sampled trajectories, lowering the turn-weighted mean.</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-9.png" alt="图 9" loading="lazy"><figcaption>图 9：Figure 9: Prompt template used for the first step (no interaction history).</figcaption></figure>
+
+<figure class="paper-figure"><img src="figure-10.png" alt="图 10" loading="lazy"><figcaption>图 10：Figure 10: Prompt template used for subsequent steps (with interaction history).</figcaption></figure>
