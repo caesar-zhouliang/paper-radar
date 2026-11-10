@@ -11,6 +11,19 @@ site:
   picks: 15               # 首页「精选」条数
   max_papers: 700         # 单日最多收录
 
+sources:
+  # Additional RSS feeds. Enable any after checking the feed is publicly
+  # accessible; OpenReview and Zhihu often require challenge/cookie handling.
+  extra:
+    - id: zhihu-ai
+      name: 知乎 AI
+      rss: ""
+      enabled: false
+    - id: openreview
+      name: OpenReview
+      rss: ""
+      enabled: false
+
 fetch:
   categories: [cs.CV, cs.LG, cs.RO, cs.AI]
   days: 2                 # 回看天数（覆盖时差与跨日提交）
@@ -184,7 +197,7 @@ translate:
   base_url: https://api.openai.com/v1
   api_key_env: OPENAI_API_KEY
   batch_size: 8
-  max_papers: 90          # 每天最多翻译篇数，控制成本
+  max_papers: 700         # 覆盖当天所有收录论文
   temperature: 0.2
 
 # ---------------- 推送 ----------------

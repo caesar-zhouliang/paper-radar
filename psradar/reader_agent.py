@@ -131,5 +131,5 @@ PDF：{pdf}
 
 def choose(papers: list[dict], limit: int = 1) -> list[dict]:
     ranked = [p for p in papers if p.get("pick")]
-    ranked.sort(key=lambda p: (0 if "driving" in p.get("topics", []) else 1, -p.get("score", 0)))
+    ranked.sort(key=lambda p: -int(p.get("score", 0)))
     return ranked[:limit]

@@ -33,8 +33,8 @@ def _summaries(papers: list[dict], date_str: str) -> None:
     # One full reader per day; the site keeps the translation and the brief
     # gets its generated 基础摘要.
     generated = {}
-    for paper in reader_agent.choose(papers, limit=1):
-        result = reader_agent.generate(paper, date_str, reader_limit=1)
+    for paper in reader_agent.choose(papers, limit=2):
+        result = reader_agent.generate(paper, date_str, reader_limit=2)
         if result:
             generated[paper["id"]] = result.get("summary", "")
     for paper in papers:

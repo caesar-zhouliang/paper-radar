@@ -84,8 +84,8 @@
     if ((p.authors || []).length > 4) authors += ' <span class="more">等 ' + p.authors.length + " 人</span>";
 
     var hasZh = !!(p.title_zh || p.abstract_zh);
-    var body = p.abstract_zh || p.abstract || "";
-    var bodyEn = p.abstract_zh && p.abstract ? '<div class="abstract-en" hidden>' + esc(p.abstract) + "</div>" : "";
+    var body = p.abstract_zh || "（中文摘要待生成）";
+    var bodyEn = p.abstract ? '<div class="abstract-en" hidden>' + esc(p.abstract) + "</div>" : "";
 
     return '<article class="card' + (p.pick ? " pick" : "") + '" data-i="' + idx + '">' +
       '<div class="card-top">' +

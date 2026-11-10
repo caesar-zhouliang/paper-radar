@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from psradar import arxiv_client, notify, ranker, renderer, translator
+from psradar import arxiv_client, notify, ranker, renderer, sources, translator, zh
 from psradar.config import CACHE_DIR, DATA_DIR, load_config
 
 HISTORY_DIR = DATA_DIR / "history"
@@ -102,6 +102,8 @@ def main() -> int:
             max_docs=int(cfg.nav("fetch.max_docs", 3000)),
             interval=float(cfg.nav("fetch.request_interval", 3.2)),
         )
+        extra = sources.fetch_extra(cfg.nav("sources.extra", []) or [])
+        raw.extend(extra)
         if not raw:
             print("没抓到论文，退出")
             return 1
@@ -119,8 +121,10 @@ def main() -> int:
             print("  · 已跳过")
         else:
             translator.translate_papers(papers, cfg, CACHE_DIR)
-
-        _save_history(date_str, papers)
+            missing = zh.ensure(papers)
+            if missing:
+                print(f"  · 本地 Codex 补译 {missing} 篇")
+                _save_history(date_str, papers)
 
     if not args.offline:
         print("[4/5] 生成站点 …")

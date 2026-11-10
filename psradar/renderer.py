@@ -20,9 +20,9 @@ def _slim(p: dict) -> dict:
     return {
         "id": p["id"],
         "title": p["title"],
-        "title_zh": p.get("title_zh", ""),
+        "title_zh": p.get("title_zh") or p.get("title", ""),
         "abstract": p.get("abstract", ""),
-        "abstract_zh": p.get("abstract_zh", ""),
+        "abstract_zh": p.get("abstract_zh") or "（中文摘要待生成）",
         "authors": p.get("authors", [])[:12],
         "published_date": p.get("published_date", ""),
         "abs_url": p.get("abs_url", ""),
