@@ -210,4 +210,4 @@ notify:
   wecom:
     enabled: false        # 企业微信群机器人
   feishu:
-    enabled: true         # 飞书应用私聊
+    enabled: true         # 飞书应用私聊；收件人见 README 的 FEISHU_RECEIVE_EMAILS
