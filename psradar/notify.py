@@ -104,3 +104,10 @@ def notify_all(cfg, papers: list[dict], date_str: str) -> None:
             fn(cfg, *args)
         except Exception as exc:  # noqa: BLE001
             print(f"  ! 推送失败({fn.__name__}): {exc}")
+    if cfg.nav("notify.feishu.enabled", False):
+        from .brief import send as send_feishu
+        try:
+            send_feishu(cfg, papers, date_str)
+            print("  ✓ 飞书摘要已发送")
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ! 飞书推送失败: {exc}")

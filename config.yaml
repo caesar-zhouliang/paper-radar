@@ -7,7 +7,7 @@ site:
   title: Paper Radar
   subtitle: 每日 arXiv 精选 · 扩散模型 / 自动驾驶 / 强化学习 / 世界模型 / 机器人
   timezone: Asia/Shanghai
-  base_url: ""            # 部署后填，如 https://yourname.github.io/paper-radar
+  base_url: "https://caesar-zhouliang.github.io/paper-radar"
   picks: 15               # 首页「精选」条数
   max_papers: 700         # 单日最多收录
 
@@ -196,3 +196,5 @@ notify:
     enabled: false        # Server酱 → 微信
   wecom:
     enabled: false        # 企业微信群机器人
+  feishu:
+    enabled: true         # 飞书应用私聊
