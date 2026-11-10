@@ -1,0 +1,198 @@
+# =========================================================
+#  Paper Radar 配置
+#  改这个文件即可调整方向、关键词、排序权重
+# =========================================================
+
+site:
+  title: Paper Radar
+  subtitle: 每日 arXiv 精选 · 扩散模型 / 自动驾驶 / 强化学习 / 世界模型 / 机器人
+  timezone: Asia/Shanghai
+  base_url: ""            # 部署后填，如 https://yourname.github.io/paper-radar
+  picks: 15               # 首页「精选」条数
+  max_papers: 700         # 单日最多收录
+
+fetch:
+  categories: [cs.CV, cs.LG, cs.RO, cs.AI]
+  days: 2                 # 回看天数（覆盖时差与跨日提交）
+  page_size: 200
+  max_docs: 3000
+  request_interval: 3.2   # arXiv 官方要求请求间隔 ≥ 3 秒
+
+# ---------------- 方向定义 ----------------
+# keywords 命中权重：标题 x3，摘要 x1（见 boost.weights）
+topics:
+  - id: diffusion
+    name: 扩散 / 生成模型
+    color: "#7c5cff"
+    keywords:
+      - diffusion model
+      - diffusion models
+      - denoising diffusion
+      - diffusion policy
+      - latent diffusion
+      - diffusion transformer
+      - flow matching
+      - rectified flow
+      - score-based
+      - consistency model
+      - text-to-image
+      - text-to-video
+      - image generation
+      - video generation
+      - ddpm
+      - ddim
+      - generative model
+
+  - id: driving
+    name: 自动驾驶
+    color: "#2f9df4"
+    keywords:
+      - autonomous driving
+      - self-driving
+      - end-to-end driving
+      - bird's eye view
+      - occupancy prediction
+      - occupancy
+      - trajectory prediction
+      - motion planning
+      - hd map
+      - bev
+      - nuscenes
+      - waymo
+      - carla
+      - driving policy
+      - autonomous vehicle
+
+  - id: rl
+    name: 强化学习
+    color: "#f2994a"
+    keywords:
+      - reinforcement learning
+      - reinforcement
+      - policy gradient
+      - actor-critic
+      - q-learning
+      - proximal policy
+      - ppo
+      - grpo
+      - dpo
+      - offline reinforcement
+      - model-based reinforcement
+      - multi-agent reinforcement
+      - rlhf
+      - reward model
+      - decision transformer
+      - q-value
+      - advantage estimation
+
+  - id: world
+    name: 世界模型
+    color: "#eb5757"
+    keywords:
+      - world model
+      - world simulator
+      - latent dynamics
+      - video prediction
+      - dreamer
+      - model-based planning
+      - generative simulator
+      - neural simulator
+      - predictive world
+      - dynamics model
+      - imagination
+
+  - id: robotics
+    name: 机器人
+    color: "#27ae60"
+    keywords:
+      - robot learning
+      - robotic manipulation
+      - manipulation
+      - dexterous
+      - humanoid
+      - vision-language-action
+      - vla
+      - embodied
+      - sim-to-real
+      - loco-manipulation
+      - grasping
+      - mobile manipulation
+      - teleoperation
+      - robot policy
+      - quadrotor
+
+# ---------------- 排序加分项 ----------------
+boost:
+  weights:
+    topic_title: 7.0       # 标题命中方向关键词
+    topic_abstract: 1.6    # 摘要命中
+    lab: 5.0               # 知名机构
+    venue: 9.0             # 已被顶会接收
+    code: 7.0              # 有开源代码
+    recency: 3.0           # 当天提交
+  labs:
+    - DeepMind
+    - OpenAI
+    - Anthropic
+    - Meta AI
+    - FAIR
+    - NVIDIA
+    - Google Research
+    - Microsoft Research
+    - Tsinghua
+    - Peking University
+    - Shanghai AI Lab
+    - 上海人工智能实验室
+    - 清华大学
+    - 北京大学
+    - Stanford
+    - MIT
+    - Berkeley
+    - CMU
+    - HKU
+    - CUHK
+    - NUS
+    - ByteDance
+    - Alibaba
+    - Tencent
+    - Waymo
+    - Wayve
+    - Physical Intelligence
+  venues:
+    - CVPR
+    - ICCV
+    - ECCV
+    - NeurIPS
+    - ICML
+    - ICLR
+    - AAAI
+    - IJCAI
+    - ICRA
+    - IROS
+    - CoRL
+    - RSS
+    - TPAMI
+    - SIGGRAPH
+    - ACL
+    - EMNLP
+
+# ---------------- 中文翻译 ----------------
+# 任何 OpenAI 兼容接口都行（DeepSeek / 通义 / 智谱 / 本地 Ollama）
+translate:
+  enabled: true
+  model: gpt-4o-mini
+  base_url: https://api.openai.com/v1
+  api_key_env: OPENAI_API_KEY
+  batch_size: 8
+  max_papers: 90          # 每天最多翻译篇数，控制成本
+  temperature: 0.2
+
+# ---------------- 推送 ----------------
+notify:
+  email:
+    enabled: false
+    to: []                # ["you@example.com"]
+  serverchan:
+    enabled: false        # Server酱 → 微信
+  wecom:
+    enabled: false        # 企业微信群机器人

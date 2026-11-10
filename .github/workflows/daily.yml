@@ -1,0 +1,81 @@
+name: Daily Paper Radar
+
+on:
+  schedule:
+    - cron: "0 1 * * *"        # UTC 01:00 = 北京时间 09:00
+  workflow_dispatch:           # 支持手动触发
+  push:
+    branches: [main]
+    paths:                     # 只在改代码/配置时重建，数据提交不会触发（避免循环）
+      - "psradar/**"
+      - "assets/**"
+      - "templates/**"
+      - "config.yaml"
+      - "run.py"
+      - "requirements.txt"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: paper-radar
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 抓取并生成站点
+        env:
+          # —— 翻译（可选）——
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          # —— 你的站点地址，用于 RSS 与推送里的链接 ——
+          SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
+          # —— 推送（可选）——
+          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
+          WECOM_WEBHOOK: ${{ secrets.WECOM_WEBHOOK }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        run: python run.py
+
+      - name: 提交数据（历史 + 翻译缓存）
+        run: |
+          git config user.name  "paper-radar-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data
+          if git diff --quiet --cached; then
+            echo "数据无变化"
+          else
+            git commit -m "chore: data $(TZ=Asia/Shanghai date +%F)"
+            git push
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<meta name="description" content="__SUBTITLE__">
+<meta property="og:title" content="__TITLE__">
+<meta property="og:description" content="__SUBTITLE__">
+<link rel="alternate" type="application/rss+xml" title="Paper Radar" href="__ROOT__feed.xml">
+<style>__CSS__</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">📡 Paper Radar<span class="sub">每日 arXiv 精选</span></div>
+  <div class="spacer"></div>
+  <span class="stamp">__STAMP__</span>
+  <select id="day-select" title="切换到历史日期">__DAY_OPTIONS__</select>
+  <button class="icon-btn" id="theme-toggle" title="切换深浅色">◐</button>
+</header>
+
+<div class="wrap">
+  <aside>
+    <div class="search-box">
+      <input id="q" type="search" placeholder="搜索标题 / 作者 / 关键词" autocomplete="off">
+    </div>
+    <p class="nav-title">研究方向</p>
+    <nav id="topic-nav"></nav>
+    <label class="toggle"><input type="checkbox" id="only-pick"> 只看精选</label>
+    <div class="toggle">
+      <span>排序</span>
+      <select id="sort">
+        <option value="score">按重要度</option>
+        <option value="date">按提交时间</option>
+      </select>
+    </div>
+  </aside>
+
+  <main>
+    <div class="list-head">
+      <h1>__HEADLINE__</h1>
+      <span class="count" id="shown-count"></span>
+    </div>
+    <section class="list" id="list"></section>
+    <footer class="page">
+      数据来源 <a href="https://arxiv.org" target="_blank" rel="noopener">arXiv.org</a> ·
+      每天自动更新 · 重要度为本站启发式打分，仅供参考
+    </footer>
+  </main>
+</div>
+
+<script id="paper-data" type="application/json">__DATA__</script>
+<script>__JS__</script>
+</body>
+</html>
