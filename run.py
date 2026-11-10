@@ -60,6 +60,36 @@ def _load_archive(days: list[dict]) -> dict[str, list[dict]]:
     return out
 
 
+def _merge_recent_translations(papers: list[dict]) -> None:
+    """Reuse Chinese text from recent history.
+
+    arXiv fetches overlap by design (to cover time zones). Without this merge,
+    the same few hundred abstracts would be sent to Codex again every morning.
+    """
+    if not HISTORY_DIR.exists():
+        return
+    cache: dict[str, dict] = {}
+    files = sorted(HISTORY_DIR.glob("*.json"), reverse=True)[:7]
+    for path in files:
+        try:
+            previous = json.loads(path.read_text("utf-8"))
+        except Exception:
+            continue
+        for paper in previous:
+            paper_id = paper.get("id")
+            if paper_id and paper_id not in cache:
+                cache[paper_id] = paper
+    for paper in papers:
+        old = cache.get(paper.get("id"))
+        if not old:
+            continue
+        for key in ("title_zh", "abstract_zh"):
+            if not paper.get(key) and old.get(key):
+                paper[key] = old[key]
+        if not paper.get("brief_zh") and old.get("brief_zh"):
+            paper["brief_zh"] = old["brief_zh"]
+
+
 def _dedupe_sources(papers: list[dict]) -> list[dict]:
     """Merge the same paper from arXiv and a conference by normalized title."""
     merged: dict[str, dict] = {}
@@ -146,6 +176,7 @@ def main() -> int:
 
         print("[2/5] 方向匹配 + 打分 …")
         papers = ranker.rank(raw, cfg)
+        _merge_recent_translations(papers)
         print(f"  · 与方向相关 {len(papers)} 篇")
 
         # 超出上限时优先保留精选
