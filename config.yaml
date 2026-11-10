@@ -197,7 +197,7 @@ translate:
   base_url: https://api.openai.com/v1
   api_key_env: OPENAI_API_KEY
   batch_size: 8
-  max_papers: 700         # 覆盖当天所有收录论文
+  max_papers: 60          # 每轮最多补译，避免 CI 超时
   temperature: 0.2
 
 # ---------------- 推送 ----------------

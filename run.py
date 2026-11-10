@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -121,10 +122,14 @@ def main() -> int:
             print("  · 已跳过")
         else:
             translator.translate_papers(papers, cfg, CACHE_DIR)
-            missing = zh.ensure(papers)
-            if missing:
-                print(f"  · 本地 Codex 补译 {missing} 篇")
-                _save_history(date_str, papers)
+            # In CI, translation is handled by the configured API provider.
+            # The local Codex fallback is intentionally opt-in to keep Actions
+            # within its time budget.
+            if os.getenv("PAPER_RADAR_LOCAL_CODEX_TRANSLATE") == "1":
+                missing = zh.ensure(papers)
+                if missing:
+                    print(f"  · 本地 Codex 补译 {missing} 篇")
+            _save_history(date_str, papers)
 
     if not args.offline:
         print("[4/5] 生成站点 …")
