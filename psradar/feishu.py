@@ -1,7 +1,10 @@
 """Feishu private-message delivery for the daily brief.
 
-Credentials are read from the environment, never stored in the repository:
-FEISHU_APP_ID, FEISHU_APP_SECRET, FEISHU_RECEIVE_ID (open_id).
+Credentials are read from the environment, never stored in the repository.
+Recipients can be configured with:
+  FEISHU_RECEIVE_EMAILS  comma-separated emails (resolved to open_id)
+  FEISHU_RECEIVE_IDS     comma-separated open_ids
+  FEISHU_RECEIVE_ID      one open_id (backward compatible)
 """
 from __future__ import annotations
 
@@ -37,26 +40,64 @@ def _token() -> str:
     return body["tenant_access_token"]
 
 
-def send_markdown(title: str, markdown: str) -> None:
-    receive_id = os.getenv("FEISHU_RECEIVE_ID", "").strip()
-    if not receive_id:
-        raise RuntimeError("missing FEISHU_RECEIVE_ID")
-    token = _token()
+def _env_list(name: str) -> list[str]:
+    raw = os.getenv(name, "")
+    return [item.strip() for item in raw.replace(";", ",").split(",") if item.strip()]
+
+
+def _resolve_emails(emails: list[str], token: str) -> list[str]:
+    if not emails:
+        return []
     body = _post(
-        "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id",
-        {
-            "receive_id": receive_id,
-            "msg_type": "interactive",
-            "content": json.dumps(
-                {
-                    "config": {"wide_screen_mode": True, "enable_forward": True},
-                    "header": {"template": "blue", "title": {"tag": "plain_text", "content": title}},
-                    "elements": [{"tag": "div", "text": {"tag": "lark_md", "content": markdown}}],
-                },
-                ensure_ascii=False,
-            ),
-        },
+        "https://open.feishu.cn/open-apis/contact/v3/users/batch_get_id?user_id_type=open_id",
+        {"emails": emails},
         token,
     )
     if body.get("code") != 0:
-        raise RuntimeError("Feishu message rejected: " + str(body))
+        raise RuntimeError("Feishu email lookup rejected: " + str(body))
+    resolved = []
+    for item in body.get("data", {}).get("user_list", []):
+        open_id = item.get("user_id") or item.get("open_id")
+        if open_id:
+            resolved.append(open_id)
+    return resolved
+
+
+def _recipients(token: str) -> list[str]:
+    ids = _env_list("FEISHU_RECEIVE_IDS")
+    single = os.getenv("FEISHU_RECEIVE_ID", "").strip()
+    if single:
+        ids.append(single)
+    emails = _env_list("FEISHU_RECEIVE_EMAILS")
+    ids.extend(_resolve_emails(emails, token))
+    # Stable de-duplication keeps one send per person.
+    return list(dict.fromkeys(ids))
+
+
+def send_markdown(title: str, markdown: str) -> list[str]:
+    token = _token()
+    recipients = _recipients(token)
+    if not recipients:
+        raise RuntimeError("missing FEISHU_RECEIVE_EMAILS / FEISHU_RECEIVE_IDS / FEISHU_RECEIVE_ID")
+    sent = []
+    for receive_id in recipients:
+        body = _post(
+            "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id",
+            {
+                "receive_id": receive_id,
+                "msg_type": "interactive",
+                "content": json.dumps(
+                    {
+                        "config": {"wide_screen_mode": True, "enable_forward": True},
+                        "header": {"template": "blue", "title": {"tag": "plain_text", "content": title}},
+                        "elements": [{"tag": "div", "text": {"tag": "lark_md", "content": markdown}}],
+                    },
+                    ensure_ascii=False,
+                ),
+            },
+            token,
+        )
+        if body.get("code") != 0:
+            raise RuntimeError(f"Feishu message rejected for {receive_id}: {body}")
+        sent.append(receive_id)
+    return sent
