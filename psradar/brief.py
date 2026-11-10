@@ -6,7 +6,7 @@ from html import escape
 
 def _pick_text(paper: dict) -> tuple[str, str, str]:
     brief = paper.get("brief_zh") or {}
-    summary = brief.get("summary") or paper.get("abstract_zh") or paper.get("abstract") or ""
+    summary = paper.get("abstract_zh") or brief.get("summary") or paper.get("abstract") or ""
     driving = brief.get("driving") or ""
     return paper.get("title_zh") or paper["title"], summary.strip(), driving.strip()
 
