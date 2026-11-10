@@ -33,6 +33,8 @@ def _slim(p: dict) -> dict:
         "primary_topic": p.get("primary_topic", ""),
         "score": p.get("score", 0),
         "pick": bool(p.get("pick")),
+        "reader_url": p.get("reader_url", ""),
+        "brief_zh": p.get("brief_zh", {}),
     }
 
 
@@ -67,6 +69,7 @@ def _page(cfg, papers: list[dict], date_str: str, generated: str, days: list[dic
         "__DATA__": data_json,
         "__CSS__": css,
         "__JS__": js,
+        "__DATE__": date_str,
     }.items():
         html = html.replace(key, val)
     return html
@@ -83,6 +86,11 @@ def build_site(cfg, papers: list[dict], date_str: str, days: list[dict], extra_d
     js = _read(ROOT / "assets" / "app.js")
     tz = ZoneInfo(cfg.nav("site.timezone", "Asia/Shanghai") or "Asia/Shanghai")
     generated = datetime.now(tz).strftime("%Y-%m-%d %H:%M")
+
+    # Readers and brief must be built before pages because they attach
+    # reader_url to today's papers and generate the linked brief page.
+    _build_readers(cfg, papers)
+    _build_brief(cfg, papers, date_str)
 
     # 历史页
     for d, ps in (extra_days or {}).items():
@@ -108,6 +116,66 @@ def build_site(cfg, papers: list[dict], date_str: str, days: list[dict], extra_d
     (SITE_DIR / "days.json").write_text(json.dumps(days, ensure_ascii=False, indent=1), "utf-8")
     (SITE_DIR / ".nojekyll").write_text("", "utf-8")
     return SITE_DIR
+
+
+def _build_readers(cfg, papers: list[dict]) -> None:
+    """Publish pre-generated Chinese readers and attach their URLs to papers."""
+    readers_root = ROOT / "data" / "readers"
+    if not readers_root.exists():
+        return
+    from .reader import build as build_reader
+    by_id = {p["id"]: p for p in papers}
+    for source in readers_root.iterdir():
+        if not source.is_dir():
+            continue
+        paper = by_id.get(source.name)
+        if not paper:
+            # Keep readers for older papers available even if today's JSON
+            # does not include that record.
+            paper = {"id": source.name, "title": source.name, "title_zh": "", "abstract": "",
+                     "authors": [], "published_date": "", "categories": [], "primary_topic": "",
+                     "abs_url": "https://arxiv.org/abs/" + source.name,
+                     "pdf_url": "https://arxiv.org/pdf/" + source.name}
+        markdown = source / "translation.md"
+        if markdown.exists():
+            build_reader(SITE_DIR, paper, markdown, source)
+        target = SITE_DIR / "readers" / paper["id"]
+        target.mkdir(parents=True, exist_ok=True)
+        for item in source.iterdir():
+            if item.is_file() and item.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".svg"}:
+                shutil.copy2(item, target / item.name)
+        paper["reader_url"] = "readers/" + paper["id"] + "/index.html"
+
+
+def _build_brief(cfg, papers: list[dict], date_str: str) -> None:
+    picks = [p for p in papers if p.get("pick")][:10]
+    cards = []
+    for paper in picks:
+        brief = paper.get("brief_zh") or {}
+        title = paper.get("title_zh") or paper["title"]
+        sections = []
+        for key, label in (("summary", "摘要"), ("method", "实验方法"), ("driving", "对自动驾驶方案的帮助")):
+            text = brief.get(key) or ""
+            if text:
+                sections.append("<h3>" + label + "</h3><p>" + escape(text) + "</p>")
+        reader = paper.get("reader_url") or ""
+        link = ""
+        if reader:
+            link = '<p><a class="reader-link" href="../' + escape(reader) + '">打开中文精读 →</a></p>'
+        cards.append(
+            '<article class="brief-card"><h2><a href="' + escape(paper["abs_url"]) + '">'
+            + escape(title) + '</a></h2><div class="meta">' + escape(paper.get("id", ""))
+            + " · 重要度 " + str(paper.get("score", 0)) + "</div>"
+            + "".join(sections) + link + "</article>"
+        )
+    css = _read(ROOT / "assets" / "style.css")
+    tpl = _read(ROOT / "templates" / "brief.html")
+    page = (tpl.replace("__CSS__", css)
+            .replace("__DATE__", escape(date_str))
+            .replace("__CARDS__", "".join(cards) or "<p>今日暂无精选。</p>"))
+    out = SITE_DIR / "brief" / (date_str + ".html")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(page, "utf-8")
 
 
 def build_feed(cfg, papers: list[dict], date_str: str) -> Path:

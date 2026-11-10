@@ -100,6 +100,7 @@
       '<div class="foot">' +
         '<a href="' + esc(p.abs_url) + '" target="_blank" rel="noopener">arXiv:' + esc(p.id) + "</a>" +
         '<a href="' + esc(p.pdf_url) + '" target="_blank" rel="noopener">PDF</a>' +
+        (p.reader_url ? '<a class="reader-link" href="' + esc(p.reader_url) + '">中文精读 →</a>' : '') +
         (p.code ? '<a href="' + esc(p.code) + '" target="_blank" rel="noopener">💻 Code</a>' : "") +
         '<button class="expand-btn">展开摘要</button>' +
       "</div></article>";
