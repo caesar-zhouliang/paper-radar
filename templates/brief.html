@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Paper Radar · __DATE__ 每日简报</title><style>__CSS__
+<title>Paper Radar · __DATE__ 每日推送</title><style>__CSS__
 .brief-wrap{max-width:920px;margin:0 auto;padding:40px 20px}
 .brief-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;margin:20px 0;box-shadow:var(--shadow)}
 .brief-card h2{font-size:21px;line-height:1.4;margin:0 0 6px}.brief-card h2 a{color:var(--ink)}
@@ -8,8 +8,34 @@
 .brief-card p{font-size:15px;line-height:1.85;color:var(--ink-2);white-space:pre-wrap}
 .brief-card .meta{font-size:12px;color:var(--ink-3)}
 .reader-link{font-weight:700}
-</style></head><body><div class="brief-wrap">
-<div class="stamp">__DATE__</div><h1>每日科研简报</h1>
-<p><a href="../">← 返回论文雷达</a></p>
+</style>
+<script>(()=>{const k='pr-theme',v=localStorage.getItem(k);if(v)document.documentElement.dataset.theme=v;})();</script>
+</head><body>
+<header class="topbar">
+  <a class="brand" href="../">📡 Paper Radar<span class="sub">每日论文精选</span></a>
+  <nav class="main-nav">
+    <a href="../">论文库</a>
+    <a class="active" href="./">每日推送</a>
+  </nav>
+  <div class="spacer"></div>
+  <label class="date-picker"><span>推送日期</span><select id="brief-select">__BRIEF_OPTIONS__</select></label>
+  <button class="icon-btn" id="theme-toggle" title="切换深浅色">◐</button>
+</header>
+<div class="brief-wrap">
+<div class="stamp">__DATE__</div><h1>每日推送</h1>
+<p><a href="./">← 全部推送</a> · <a href="../">返回论文库</a></p>
 __CARDS__
-</div></body></html>
+</div>
+<script>
+(function(){
+  var root=document.documentElement,saved=localStorage.getItem('pr-theme');
+  if(saved) root.setAttribute('data-theme',saved);
+  document.getElementById('theme-toggle').addEventListener('click',function(){
+    var next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);localStorage.setItem('pr-theme',next);
+  });
+  var sel=document.getElementById('brief-select');
+  sel.addEventListener('change',function(){if(sel.value)location.href=sel.value;});
+})();
+</script>
+</body></html>

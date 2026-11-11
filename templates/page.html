@@ -12,10 +12,15 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">📡 Paper Radar<span class="sub">每日 arXiv 精选</span></div>
+  <a class="brand" href="__ROOT__">📡 Paper Radar<span class="sub">每日论文精选</span></a>
+  <nav class="main-nav">
+    <a href="__ROOT__">论文库</a>
+    <a class="active" href="__ROOT__brief/">每日推送</a>
+  </nav>
   <div class="spacer"></div>
   <span class="stamp">__STAMP__</span>
-  <select id="day-select" title="切换到历史日期">__DAY_OPTIONS__</select>
+  <label class="date-picker"><span>论文日期</span><select id="day-select">__DAY_OPTIONS__</select></label>
+  <label class="date-picker"><span>推送日期</span><select id="brief-select">__BRIEF_OPTIONS__</select></label>
   <button class="icon-btn" id="theme-toggle" title="切换深浅色">◐</button>
 </header>
 
@@ -40,11 +45,12 @@
     <div class="list-head">
       <h1>__HEADLINE__</h1>
       <span class="count" id="shown-count"></span>
+      <a class="push-link" href="__ROOT__brief/__DATE__.html">查看当天推送 →</a>
     </div>
     <section class="list" id="list"></section>
     <footer class="page">
-      <a href="__ROOT__brief/__DATE__.html"><strong>今日简报（摘要 · 实验方法 · 自动驾驶启发）→</strong></a><br>
-      数据来源 <a href="https://arxiv.org" target="_blank" rel="noopener">arXiv.org</a> ·
+      <a href="__ROOT__brief/__DATE__.html"><strong>当天推送（摘要 · 实验方法 · 自动驾驶启发）→</strong></a><br>
+      数据来源 arXiv / CVPR / ICLR / ICML / CoRL ·
       每天自动更新 · 重要度为本站启发式打分，仅供参考
     </footer>
   </main>

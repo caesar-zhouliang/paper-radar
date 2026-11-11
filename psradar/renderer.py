@@ -41,7 +41,7 @@ def _slim(p: dict) -> dict:
 
 
 def _page(cfg, papers: list[dict], date_str: str, generated: str, days: list[dict],
-          root: str, tpl: str, css: str, js: str) -> str:
+          brief_days: list[dict], root: str, tpl: str, css: str, js: str) -> str:
     site = cfg.get("site", {})
     topics = [{"id": t["id"], "name": t["name"], "color": t.get("color", "#888")} for t in cfg.get("topics", [])]
     payload = {
@@ -57,6 +57,10 @@ def _page(cfg, papers: list[dict], date_str: str, generated: str, days: list[dic
         f'<option value="{root}{d["path"]}"{" selected" if d["date"] == date_str else ""}>{d["date"]}（{d["count"]}篇）</option>'
         for d in days
     )
+    brief_options = "".join(
+        f'<option value="{root}brief/{d["date"]}.html"{" selected" if d["date"] == date_str else ""}>{d["date"]}（{d["picks"]}篇推送）</option>'
+        for d in brief_days
+    )
     label = "今日精选" if days and days[0]["date"] == date_str else f"{date_str} 论文"
     title = f"{site.get('title','Paper Radar')} · {date_str}"
 
@@ -67,6 +71,7 @@ def _page(cfg, papers: list[dict], date_str: str, generated: str, days: list[dic
         "__HEADLINE__": escape(label),
         "__STAMP__": escape(f"{date_str} · 共 {len(papers)} 篇"),
         "__DAY_OPTIONS__": options,
+        "__BRIEF_OPTIONS__": brief_options,
         "__ROOT__": root,
         "__DATA__": data_json,
         "__CSS__": css,
@@ -75,6 +80,16 @@ def _page(cfg, papers: list[dict], date_str: str, generated: str, days: list[dic
     }.items():
         html = html.replace(key, val)
     return html
+
+
+def _brief_picks(papers: list[dict]) -> list[dict]:
+    picks = [p for p in papers if p.get("pick")]
+    picks.sort(key=lambda p: -int(p.get("score", 0)))
+    return picks[:10]
+
+
+def _has_brief(papers: list[dict]) -> bool:
+    return any((p.get("brief_zh") or {}).get("summary") for p in _brief_picks(papers))
 
 
 def build_site(cfg, papers: list[dict], date_str: str, days: list[dict], extra_days: dict[str, list[dict]] | None = None) -> Path:
@@ -91,24 +106,35 @@ def build_site(cfg, papers: list[dict], date_str: str, days: list[dict], extra_d
     js = _read(ROOT / "assets" / "app.js")
     tz = ZoneInfo(cfg.nav("site.timezone", "Asia/Shanghai") or "Asia/Shanghai")
     generated = datetime.now(tz).strftime("%Y-%m-%d %H:%M")
+    by_date = dict(extra_days or {})
+    by_date[date_str] = papers
+    brief_days = [
+        {"date": d["date"], "picks": len(_brief_picks(by_date.get(d["date"], [])))}
+        for d in days
+        if _has_brief(by_date.get(d["date"], []))
+    ]
 
     # Readers and brief must be built before pages because they attach
     # reader_url to today's papers and generate the linked brief page.
     _build_readers(cfg, papers)
-    _build_brief(cfg, papers, date_str)
+    _build_brief(cfg, papers, date_str, brief_days)
+    for day, old_papers in (extra_days or {}).items():
+        if day != date_str and _has_brief(old_papers):
+            _build_brief(cfg, old_papers, day, brief_days)
+    _build_brief_index(cfg, brief_days, by_date, generated)
 
     # 历史页
     for d, ps in (extra_days or {}).items():
         if d == date_str:
             continue
-        html = _page(cfg, ps, d, generated, days, "../", tpl, css, js)
+        html = _page(cfg, ps, d, generated, days, brief_days, "../", tpl, css, js)
         (SITE_DIR / "day" / f"{d}.html").write_text(html, "utf-8")
 
     # 首页 = 最新一天
-    index = _page(cfg, papers, date_str, generated, days, "", tpl, css, js)
+    index = _page(cfg, papers, date_str, generated, days, brief_days, "", tpl, css, js)
     (SITE_DIR / "index.html").write_text(index, "utf-8")
     (SITE_DIR / "day" / f"{date_str}.html").write_text(
-        _page(cfg, papers, date_str, generated, days, "../", tpl, css, js), "utf-8"
+        _page(cfg, papers, date_str, generated, days, brief_days, "../", tpl, css, js), "utf-8"
     )
 
     # 数据接口
@@ -152,8 +178,8 @@ def _build_readers(cfg, papers: list[dict]) -> None:
         paper["reader_url"] = "readers/" + paper["id"] + "/index.html"
 
 
-def _build_brief(cfg, papers: list[dict], date_str: str) -> None:
-    picks = [p for p in papers if p.get("pick")][:10]
+def _build_brief(cfg, papers: list[dict], date_str: str, brief_days: list[dict] | None = None) -> None:
+    picks = _brief_picks(papers)
     cards = []
     for paper in picks:
         brief = paper.get("brief_zh") or {}
@@ -175,10 +201,51 @@ def _build_brief(cfg, papers: list[dict], date_str: str) -> None:
         )
     css = _read(ROOT / "assets" / "style.css")
     tpl = _read(ROOT / "templates" / "brief.html")
+    days = brief_days or [{"date": date_str, "picks": len(picks)}]
+    options = "".join(
+        f'<option value="{escape(d["date"])}.html"{" selected" if d["date"] == date_str else ""}>{escape(d["date"])}（{d["picks"]}篇推送）</option>'
+        for d in days
+    )
     page = (tpl.replace("__CSS__", css)
             .replace("__DATE__", escape(date_str))
+            .replace("__BRIEF_OPTIONS__", options)
             .replace("__CARDS__", "".join(cards) or "<p>今日暂无精选。</p>"))
     out = SITE_DIR / "brief" / (date_str + ".html")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(page, "utf-8")
+
+
+def _build_brief_index(cfg, brief_days: list[dict], by_date: dict[str, list[dict]], generated: str) -> None:
+    """Build the daily-delivery archive with its own date picker."""
+    entries = []
+    for day in brief_days:
+        date_str = day["date"]
+        picks = _brief_picks(by_date.get(date_str, []))
+        items = []
+        for paper in picks:
+            reader = paper.get("reader_url") or ""
+            extra = '<a class="reader-link" href="../' + escape(reader) + '">中文精读</a>' if reader else ""
+            items.append(
+                '<li><a href="' + escape(paper["abs_url"]) + '" target="_blank" rel="noopener">'
+                + escape(paper.get("title_zh") or paper["title"]) + "</a>" + extra + "</li>"
+            )
+        entries.append(
+            '<article class="brief-day"><div class="brief-day-head"><div><a class="brief-date" href="'
+            + escape(date_str) + '.html">' + escape(date_str) + '</a><span class="brief-day-count">'
+            + str(len(picks)) + ' 篇推送</span></div><a class="brief-day-link" href="'
+            + escape(date_str) + '.html">阅读完整推送 →</a></div>'
+            + '<ol class="brief-title-list">' + "".join(items) + "</ol></article>"
+        )
+    options = "".join(
+        f'<option value="{escape(d["date"])}.html">{escape(d["date"])}（{d["picks"]}篇推送）</option>'
+        for d in brief_days
+    )
+    tpl = _read(ROOT / "templates" / "brief-index.html")
+    page = (tpl.replace("__CSS__", _read(ROOT / "assets" / "style.css"))
+            .replace("__BRIEF_OPTIONS__", options)
+            .replace("__ENTRIES__", "".join(entries) or '<p class="empty">暂无已生成的每日推送。</p>')
+            .replace("__GENERATED__", escape(generated)))
+    out = SITE_DIR / "brief" / "index.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page, "utf-8")
 

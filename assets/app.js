@@ -15,6 +15,8 @@
   var $q = document.getElementById("q");
   var $onlyPick = document.getElementById("only-pick");
   var $sort = document.getElementById("sort");
+  var $daySelect = document.getElementById("day-select");
+  var $briefSelect = document.getElementById("brief-select");
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -132,6 +134,8 @@
   $q.addEventListener("input", function () { state.q = $q.value; render(); });
   $onlyPick.addEventListener("change", function () { state.onlyPick = $onlyPick.checked; render(); });
   $sort.addEventListener("change", function () { state.sort = $sort.value; render(); });
+  if ($daySelect) $daySelect.addEventListener("change", function () { if ($daySelect.value) location.href = $daySelect.value; });
+  if ($briefSelect) $briefSelect.addEventListener("change", function () { if ($briefSelect.value) location.href = $briefSelect.value; });
   document.addEventListener("keydown", function (e) {
     if (e.key === "/" && document.activeElement !== $q) { e.preventDefault(); $q.focus(); }
     if (e.key === "Escape" && document.activeElement === $q) { $q.value = ""; state.q = ""; $q.blur(); render(); }

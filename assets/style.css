@@ -41,11 +41,19 @@ a:hover { text-decoration: underline; }
   border-bottom: 1px solid var(--line);
 }
 .brand { font-size: 17px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 8px; }
+.brand:hover { text-decoration: none; }
 .brand .sub { font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.main-nav { display: flex; align-items: center; gap: 4px; margin-left: 8px; }
+.main-nav a {
+  padding: 5px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--ink-3);
+}
+.main-nav a:hover { color: var(--ink); background: var(--bg); text-decoration: none; }
+.main-nav a.active { color: var(--accent); background: var(--accent-soft); }
 .topbar .spacer { flex: 1; }
 .stamp { font-size: 12px; color: var(--ink-3); }
 .topbar select, .topbar .icon-btn { height: 32px; }
-.topbar select { padding: 0 10px; }
+.topbar select { padding: 0 10px; min-width: 0; max-width: 230px; }
+.date-picker { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 12px; color: var(--ink-3); }
 .icon-btn {
   border: 1px solid var(--line); background: var(--panel); color: var(--ink-2);
   width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px;
@@ -90,6 +98,7 @@ aside { position: sticky; top: 76px; align-self: start; }
 .list-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
 .list-head h1 { font-size: 20px; margin: 0; letter-spacing: -.02em; }
 .list-head .count { font-size: 13px; color: var(--ink-3); }
+.push-link { margin-left: auto; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
 
 .card {
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
@@ -141,4 +150,9 @@ footer.page { text-align: center; color: var(--ink-3); font-size: 12px; padding:
   .wrap { grid-template-columns: 1fr; gap: 16px; padding: 16px 14px 60px; }
   aside { position: static; }
   .topbar { padding: 12px 14px; }
+  .brand .sub, .date-picker > span { display: none; }
+  .date-picker { flex: 1 1 150px; }
+  .topbar select { width: 100%; max-width: none; }
+  .main-nav { margin-left: 0; }
+  .main-nav a { padding: 5px 7px; }
 }

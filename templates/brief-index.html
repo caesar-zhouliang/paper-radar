@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>每日推送 · Paper Radar</title>
+<meta name="description" content="Paper Radar 每日飞书论文推送归档，可按日期回看摘要、实验方法与自动驾驶启发。">
+<style>__CSS__
+.brief-page{max-width:1080px;margin:0 auto;padding:34px 24px 80px}
+.brief-hero{display:flex;align-items:end;justify-content:space-between;gap:24px;margin:8px 0 26px}
+.brief-hero h1{font-size:30px;letter-spacing:-.03em;margin:0 0 6px}
+.brief-hero p{margin:0;color:var(--ink-3);font-size:14px}
+.brief-tools{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-3)}
+.brief-days{display:grid;gap:14px}
+.brief-day{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)}
+.brief-day-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:12px}
+.brief-date{font-size:19px;font-weight:750;color:var(--ink);letter-spacing:-.02em}
+.brief-date:hover{color:var(--accent);text-decoration:none}
+.brief-day-count{display:inline-block;margin-left:10px;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:650}
+.brief-day-link{font-size:12.5px;font-weight:650;white-space:nowrap}
+.brief-title-list{margin:0;padding-left:22px;color:var(--ink-2)}
+.brief-title-list li{padding:7px 0;border-top:1px dashed var(--line);line-height:1.65}
+.brief-title-list li:first-child{border-top:0}
+.brief-title-list a{color:var(--ink-2)}
+.brief-title-list a:hover{color:var(--accent)}
+.brief-title-list .reader-link{margin-left:10px;font-size:12px;font-weight:700;color:var(--accent)!important;white-space:nowrap}
+@media(max-width:720px){
+  .brief-page{padding:22px 14px 60px}
+  .brief-hero{display:block}.brief-tools{margin-top:14px}.brief-day-head{align-items:flex-start;gap:8px}
+  .brief-day{padding:16px}.brief-day-link{font-size:11.5px}
+  .brief-title-list{padding-left:18px}.brief-title-list .reader-link{margin-left:0;display:inline-block}
+  .brand .sub,.main-nav a:first-child{display:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../">📡 Paper Radar<span class="sub">每日论文精选</span></a>
+  <nav class="main-nav">
+    <a href="../">论文库</a>
+    <a class="active" href="./">每日推送</a>
+  </nav>
+  <div class="spacer"></div>
+  <label class="date-picker"><span>推送日期</span><select id="brief-archive-select">__BRIEF_OPTIONS__</select></label>
+  <button class="icon-btn" id="theme-toggle" title="切换深浅色">◐</button>
+</header>
+<main class="brief-page">
+  <section class="brief-hero">
+    <div><div class="eyebrow" style="font-size:11px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:2px">DAILY DIGEST</div>
+      <h1>每日推送</h1><p>每天 08:30 飞书简报的网页归档 · 摘要、实验方法、对自动驾驶方案的帮助</p></div>
+    <div class="brief-tools">最近生成于 __GENERATED__</div>
+  </section>
+  <section class="brief-days">__ENTRIES__</section>
+</main>
+<script>
+(function(){
+  var root=document.documentElement,saved=localStorage.getItem('pr-theme');
+  if(saved) root.setAttribute('data-theme',saved);
+  document.getElementById('theme-toggle').addEventListener('click',function(){
+    var next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);localStorage.setItem('pr-theme',next);
+  });
+  var sel=document.getElementById('brief-archive-select');
+  sel.addEventListener('change',function(){if(sel.value)location.href=sel.value;});
+})();
+</script>
+</body>
+</html>
